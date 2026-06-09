@@ -5,6 +5,8 @@ import 'package:todo_app/models/filter.dart';
 import 'package:todo_app/models/task.dart';
 import 'package:todo_app/widgets/filters/filters.dart';
 import 'package:todo_app/widgets/lists/task_list.dart';
+import 'package:todo_app/widgets/new_task/new_task.dart';
+import 'package:todo_app/widgets/new_task/new_task_button.dart';
 import 'package:todo_app/widgets/progress_bar.dart';
 
 class TodoApp extends StatefulWidget {
@@ -17,31 +19,25 @@ class TodoApp extends StatefulWidget {
 }
 
 class _TodoAppState extends State<TodoApp> {
-  final _taskList = [
-    Task(title: 'Task 1', priority: Priority.high, isDone: true),
-    Task(title: 'Task 2', priority: Priority.high),
-    Task(title: 'Task 3'),
-    Task(title: 'Task 4', priority: Priority.high),
-    Task(title: 'Task 5', priority: Priority.medium),
-    Task(title: 'Task 6', priority: Priority.high),
-    Task(title: 'Task 7', isDone: true),
-    Task(title: 'Task 8', isDone: true),
-    Task(title: 'Task 9', isDone: true),
-    Task(title: 'Task 10', isDone: true),
-    Task(title: 'Task 10', isDone: true),
-    Task(title: 'Task 10', isDone: true),
-    Task(title: 'Task 10', isDone: true),
-    Task(title: 'Task 10', isDone: true),
-    Task(title: 'Task 10', isDone: true),
-    Task(title: 'Task 10', isDone: true),
-    Task(title: 'Task 10', isDone: true),
-    Task(title: 'Task 10', isDone: true),
-    Task(title: 'Task 10', isDone: true),
-    Task(title: 'Task 10', isDone: true),
-    Task(title: 'Task 10', isDone: true),
-    Task(title: 'Task 10', isDone: true),
-    Task(title: 'Task 10', isDone: true),
-    Task(title: 'Task 10', isDone: true),
+  final List<Task> _taskList = [
+    Task(
+      title: 'Landing page redesign',
+      isDone: false,
+      priority: Priority.high,
+    ),
+    Task(
+      title: 'Gym session (Leg day)',
+      isDone: false,
+      priority: Priority.medium,
+    ),
+    Task(title: 'Update npm packages', isDone: true, priority: Priority.low),
+    Task(
+      title: 'Meal prep high-protein food',
+      isDone: false,
+      priority: Priority.high,
+    ),
+    Task(title: 'Review pull requests', isDone: true, priority: Priority.low),
+    Task(title: 'Drink 4L of water', isDone: false, priority: Priority.medium),
   ];
 
   var _filterItems = [
@@ -71,9 +67,41 @@ class _TodoAppState extends State<TodoApp> {
   }
 
   void removeTask(Task task) {
+    final taskIndex = _taskList.indexOf(task);
+
     setState(() {
       _taskList.remove(task);
     });
+
+    ScaffoldMessenger.of(context).clearSnackBars();
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('An item has beend removed.'),
+        action: SnackBarAction(
+          label: 'Undo',
+          onPressed: () {
+            setState(() {
+              _taskList.insert(taskIndex, task);
+            });
+          },
+        ),
+      ),
+    );
+  }
+
+  void _addNewTask(Task task) {
+    setState(() {
+      _taskList.add(task);
+    });
+  }
+
+  void _openNewTaskOverlay() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (ctx) => NewTask(onAddTask: _addNewTask),
+    );
   }
 
   @override
@@ -110,25 +138,35 @@ class _TodoAppState extends State<TodoApp> {
           ),
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-        child: Column(
-          children: [
-            Filters(_filterItems, changeFilter),
-            ProgressBar(
-              activeTaskCount: activeTasks.length,
-              doneTaskCount: doneTasks.length,
-            ),
-            Expanded(
-              child: TaskList(
-                activeFilter: activeFilter,
-                activeTasks: activeTasks,
-                doneTasks: doneTasks,
-                onSwitchIsDone: switchIsDone,
-                onRemoveTask: removeTask,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+          child: Stack(
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(bottom: 60),
+                child: Column(
+                  children: [
+                    Filters(_filterItems, changeFilter),
+                    ProgressBar(
+                      activeTaskCount: activeTasks.length,
+                      doneTaskCount: doneTasks.length,
+                    ),
+                    Expanded(
+                      child: TaskList(
+                        activeFilter: activeFilter,
+                        activeTasks: activeTasks,
+                        doneTasks: doneTasks,
+                        onSwitchIsDone: switchIsDone,
+                        onRemoveTask: removeTask,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+              NewTaskButton(onOpenNewTaskOverlay: _openNewTaskOverlay),
+            ],
+          ),
         ),
       ),
     );

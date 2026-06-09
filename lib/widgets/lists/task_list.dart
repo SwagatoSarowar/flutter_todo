@@ -65,6 +65,7 @@ class TaskList extends StatelessWidget {
               }, childCount: activeTasks.length),
             ),
         ],
+        const SliverToBoxAdapter(child: SizedBox(height: 16)),
         if (activeFilter == 'All' || activeFilter == 'Done') ...[
           const SliverToBoxAdapter(child: ListTitle('completed')),
 
